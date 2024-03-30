@@ -1,0 +1,1 @@
+web: gunicorn student_handbook.wsgi --log-file -
