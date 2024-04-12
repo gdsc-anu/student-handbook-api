@@ -5,14 +5,14 @@ from .models import HandbookCategory, HandbookSection, HandbookEntry
 class HandbookCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = HandbookCategory
-        fields = ['id', 'title', 'slug']
+        fields = [ 'title', 'slug']
 
 class HandbookSectionSerializer(serializers.ModelSerializer):
     entries_count = serializers.SerializerMethodField()
 
     class Meta:
         model = HandbookSection
-        fields = ['id', 'category', 'title', 'slug', 'entries_count']
+        fields = ['category', 'title', 'slug', 'entries_count']
     
     def get_entries_count(self, obj):
         return obj.entries.count()
@@ -22,7 +22,7 @@ class HandbookEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HandbookEntry
-        fields = ['id', 'section', 'title', 'slug', 'content', 'image', 'video', 'attachment', 'section_slug']  # Include 'section_slug' in fields
+        fields = ['title', 'content', 'image', 'video', 'attachment', 'section_slug']  # Include 'section_slug' in fields
 
     def create(self, validated_data):
         section_slug = validated_data.pop('section_slug')

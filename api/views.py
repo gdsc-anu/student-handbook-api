@@ -4,19 +4,24 @@ from rest_framework.response import Response
 from .models import HandbookCategory, HandbookSection, HandbookEntry
 from .serializers import HandbookCategorySerializer, HandbookSectionSerializer, HandbookEntrySerializer
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def handbook(request):
     if request.method == 'GET':
         categories = HandbookCategory.objects.all()
         serializer = HandbookCategorySerializer(categories, many=True)
         return Response(serializer.data)
 
+"""
     elif request.method == 'POST':
         serializer = HandbookCategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+"""
+    
+"""	
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, slug):
@@ -40,7 +45,9 @@ def category_detail(request, slug):
         category.delete()
         return Response({'detail': 'Handbook Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'POST'])
+"""
+
+@api_view(['GET'])
 def section(request, category_slug):
     try:
         category = HandbookCategory.objects.get(slug=category_slug)
@@ -51,7 +58,8 @@ def section(request, category_slug):
         sections = HandbookSection.objects.filter(category=category)
         serializer = HandbookSectionSerializer(sections, many=True)
         return Response(serializer.data)
-
+    
+"""
     elif request.method == 'POST':
         request.data['category'] = category.id  # Attach category ID to the section data
         serializer = HandbookSectionSerializer(data=request.data)
@@ -59,7 +67,10 @@ def section(request, category_slug):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+"""
 
+"""
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def section_detail(request, category_slug, section_slug):
@@ -83,8 +94,10 @@ def section_detail(request, category_slug, section_slug):
     elif request.method == 'DELETE':
         section.delete()
         return Response({'detail': 'Handbook Section deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+"""
     
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def section_entries(request, category_slug, section_slug):
     try:
         category = HandbookCategory.objects.get(slug=category_slug)
@@ -97,6 +110,8 @@ def section_entries(request, category_slug, section_slug):
         serializer = HandbookEntrySerializer(entries, many=True)
         return Response(serializer.data)
 
+"""
+
     elif request.method == 'POST':
         request.data['section'] = section.id  # Attach section ID to the entry data
         serializer = HandbookEntrySerializer(data=request.data)
@@ -104,9 +119,10 @@ def section_entries(request, category_slug, section_slug):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
+""" 
     
-    
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET'])
 def entry_detail(request, category_slug, section_slug, entry_slug):
     try:
         # Ensure the category exists
@@ -121,7 +137,8 @@ def entry_detail(request, category_slug, section_slug, entry_slug):
     if request.method == 'GET':
         serializer = HandbookEntrySerializer(entry)
         return Response(serializer.data)
-
+    
+    """
     elif request.method == 'PUT':
         serializer = HandbookEntrySerializer(entry, data=request.data)
         if serializer.is_valid():
@@ -132,3 +149,7 @@ def entry_detail(request, category_slug, section_slug, entry_slug):
     elif request.method == 'DELETE':
         entry.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    """
+
+    
