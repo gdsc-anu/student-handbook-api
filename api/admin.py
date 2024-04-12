@@ -34,4 +34,4 @@ class HandbookEntryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     search_fields = ('title', 'section__title')
     ordering = ('section', 'title')
-    list_filter = ('section', 'section__category')
+    list_filter = ('section', 'section__category', 'section__category__title')
