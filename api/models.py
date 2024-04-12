@@ -3,7 +3,7 @@ from django.utils.text import slugify
 
 class HandbookCategory(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True, db_index=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -19,7 +19,7 @@ class HandbookCategory(models.Model):
         ordering = ['title']  # Orders categories alphabetically by title.
 
 class HandbookSection(models.Model):
-    category = models.ForeignKey(HandbookCategory, on_delete=models.CASCADE, related_name='sections')
+    category = models.ForeignKey(HandbookCategory, on_delete=models.CASCADE, related_name='sections', db_index=True)
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
 
@@ -38,9 +38,9 @@ class HandbookSection(models.Model):
         ordering = ['title']  # Orders sections alphabetically by title.
     
 class HandbookEntry(models.Model):
-    section = models.ForeignKey(HandbookSection, on_delete=models.CASCADE, related_name='entries')
+    section = models.ForeignKey(HandbookSection, on_delete=models.CASCADE, related_name='entries', db_index=True)
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True, db_index=True)
     content = models.TextField()
     image = models.ImageField(upload_to='content_images', blank=True, null=True)
     video = models.URLField(blank=True, null=True)

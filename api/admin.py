@@ -15,7 +15,7 @@ class HandbookEntryInline(admin.TabularInline):
 class HandbookCategoryAdmin(admin.ModelAdmin):
     list_display = ('title', 'slug')
     prepopulated_fields = {'slug': ('title',)}
-    search_fields = ('title', 'description')
+    search_fields = ('title', 'slug')
     ordering = ('title',)
     inlines = [HandbookSectionInline]
 
@@ -23,7 +23,7 @@ class HandbookCategoryAdmin(admin.ModelAdmin):
 class HandbookSectionAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'slug')
     prepopulated_fields = {'slug': ('title',)}
-    search_fields = ('title', 'description', 'category__title')
+    search_fields = ('title', 'slug', 'category__title')
     ordering = ('category', 'title')
     list_filter = ('category',)
     inlines = [HandbookEntryInline]
@@ -32,6 +32,6 @@ class HandbookSectionAdmin(admin.ModelAdmin):
 class HandbookEntryAdmin(admin.ModelAdmin):
     list_display = ('title', 'section', 'slug')
     prepopulated_fields = {'slug': ('title',)}
-    search_fields = ('title', 'content', 'section__title', 'section__category__title')
+    search_fields = ('title', 'slug', 'section__title')
     ordering = ('section', 'title')
     list_filter = ('section', 'section__category')
