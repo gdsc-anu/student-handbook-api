@@ -86,10 +86,10 @@ WSGI_APPLICATION = 'student_handbook.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dcc6elntuj703c',
-        'USER': 'xnvxnhhoquewmx',
+        'NAME': 'd5gpdf9bj16mbj',
+        'USER': 'rlvusduhwfabpy',
         'PASSWORD': '4d64f5e9248a3cad4c25bf23614d3bc0ffe1438d94bab33c2a238e65633d109e',
-        'HOST': 'ec2-35-169-9-79.compute-1.amazonaws.com',
+        'HOST': 'ec2-3-230-24-12.compute-1.amazonaws.com',
         'PORT': '5432',
     }
 }
