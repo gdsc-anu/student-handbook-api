@@ -23,5 +23,5 @@ urlpatterns = [
 ]
 
 admin.site.index_title = 'All NATIONS UNIVERSITY STUDENT HANDBOOK' 
-admin.site.site_header = 'ANU Handbook Admin'
+admin.site.site_header = 'ANU Student Handbook Admin'
 admin.site.site_title = 'ANU Student Handbook Admin Portal'
