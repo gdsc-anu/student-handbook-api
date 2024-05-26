@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['anu-handbook-b9deaf3b0e00.herokuapp.com', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
-    'corsheaders',
     'django_filters',
     'rest_framework_simplejwt',
 ]
@@ -61,6 +61,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+APPEND_SLASH = True
 
 ROOT_URLCONF = 'student_handbook.urls'
 
