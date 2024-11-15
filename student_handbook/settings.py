@@ -92,6 +92,19 @@ REST_FRAMEWORK = {
     ],
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDISCLOUD_URL", "redis://127.0.0.1:6379/1"),  # Fallback to local Redis for development
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "TIMEOUT": 300,  # Cache timeout in seconds (5 minutes)
+    }
+}
+
+
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
