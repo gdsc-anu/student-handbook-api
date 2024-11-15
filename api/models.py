@@ -46,7 +46,7 @@ class SlugMixin:
 
 
 class HandbookCategory(SlugMixin, models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, db_index=True)
     slug = models.SlugField(max_length=200, unique=True, blank=True, db_index=True)
     
     class Meta:
@@ -60,8 +60,8 @@ class HandbookCategory(SlugMixin, models.Model):
 
 class HandbookSection(SlugMixin, models.Model):
     category = models.ForeignKey(HandbookCategory, on_delete=models.CASCADE, related_name='sections', db_index=True)
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    title = models.CharField(max_length=200, db_index=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True, db_index=True)
 
     class Meta:
         verbose_name = "Handbook Section"
@@ -76,7 +76,7 @@ class HandbookEntry(SlugMixin, models.Model):
     section = models.ForeignKey(HandbookSection, on_delete=models.CASCADE, related_name='entries', db_index=True)
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True, db_index=True)
-    content = models.TextField()
+    content = models.TextField(db_index=True)
     # Use CloudinaryField for image and file uploads with dynamic paths
     image = CloudinaryField(
         'image',
