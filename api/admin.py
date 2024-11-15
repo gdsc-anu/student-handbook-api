@@ -47,7 +47,6 @@ class HandbookSectionAdmin(admin.ModelAdmin):
 @admin.register(HandbookEntry)
 class HandbookEntryAdmin(admin.ModelAdmin):
     list_display = ('title', 'section', 'slug')
-    prepopulated_fields = {'slug': ('title',)}
     search_fields = ('title', 'section__title')
     ordering = ('section', 'title')
     list_filter = ('section', 'section__category')  # Simplified list filter
