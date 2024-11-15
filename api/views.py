@@ -1,155 +1,273 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import HandbookCategory, HandbookSection, HandbookEntry
-from .serializers import HandbookCategorySerializer, HandbookSectionSerializer, HandbookEntrySerializer
+from .serializers import (
+    HandbookCategorySerializer, 
+    HandbookSectionSerializer, 
+    HandbookEntrySerializer, 
+    HandbookCreateEntrySerializer
+)
 
-@api_view(['GET'])
-def handbook(request):
-    if request.method == 'GET':
-        categories = HandbookCategory.objects.all()
-        serializer = HandbookCategorySerializer(categories, many=True)
+# ViewSet for HandbookCategory
+class HandbookCategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Handbook Categories. Supports:
+    - Listing all categories
+    - Retrieving a single category
+    - Creating a new category
+    - Updating an existing category
+    - Deleting a category
+    - Retrieving all sections under a category
+    """
+    
+    queryset = HandbookCategory.objects.all()
+    serializer_class = HandbookCategorySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['title']  # Enables search on 'title' field
+    ordering_fields = ['title']  # Enables ordering by 'title'
+
+    @swagger_auto_schema(
+        operation_description="Create a new handbook category",
+        request_body=HandbookCategorySerializer,
+        responses={201: HandbookCategorySerializer, 400: 'Validation Error'}
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new handbook category.
+        
+        - `title`: Title of the category.
+        - Returns the created category with a slug.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @swagger_auto_schema(
+        operation_description="Update an existing handbook category",
+        request_body=HandbookCategorySerializer,
+        responses={200: HandbookCategorySerializer, 400: 'Validation Error'}
+    )
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing handbook category.
+        
+        - `title`: Updated title of the category.
+        - Returns the updated category with the new details.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
 
-"""
-    elif request.method == 'POST':
-        serializer = HandbookCategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-"""
-    
-"""	
+    @swagger_auto_schema(
+        operation_description="Delete a handbook category",
+        responses={204: 'No Content', 404: 'Not Found'}
+    )
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete an existing handbook category.
+        
+        - Deletes the specified category from the database.
+        - Returns `204 No Content` on successful deletion.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def category_detail(request, slug):
-    try:
-        category = HandbookCategory.objects.get(slug=slug)
-    except HandbookCategory.DoesNotExist:
-        return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = HandbookCategorySerializer(category)
-        return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = HandbookCategorySerializer(category, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        category.delete()
-        return Response({'detail': 'Handbook Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
-"""
-
-@api_view(['GET'])
-def section(request, category_slug):
-    try:
-        category = HandbookCategory.objects.get(slug=category_slug)
-    except HandbookCategory.DoesNotExist:
-        return Response({'detail': 'Category not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        sections = HandbookSection.objects.filter(category=category)
+    @swagger_auto_schema(
+        operation_description="Retrieve sections for a specific handbook category",
+        responses={200: HandbookSectionSerializer(many=True)}
+    )
+    @action(detail=True, methods=['get'])
+    def sections(self, request, pk=None):
+        """
+        Retrieve all sections for a specific handbook category.
+        
+        - Returns a list of sections under the specified category.
+        """
+        category = self.get_object()
+        sections = category.sections.all()
         serializer = HandbookSectionSerializer(sections, many=True)
         return Response(serializer.data)
     
-"""
-    elif request.method == 'POST':
-        request.data['category'] = category.id  # Attach category ID to the section data
-        serializer = HandbookSectionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# ViewSet for HandbookSection
+class HandbookSectionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing Handbook Sections. Supports:
+    - Listing all sections
+    - Retrieving a single section
+    - Creating a new section
+    - Updating an existing section
+    - Deleting a section
+    - Retrieving all entries under a section
+    """
+    
+    queryset = HandbookSection.objects.all()
+    serializer_class = HandbookSectionSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['category']  # Enables filtering by 'category'
+    search_fields = ['title', 'category__title']  # Enables search on 'title' and 'category title'
+    ordering_fields = ['title', 'category__title']  # Enables ordering by 'title' and 'category title'
+
+    @swagger_auto_schema(
+        operation_description="Create a new handbook section",
+        request_body=HandbookSectionSerializer,
+        responses={201: HandbookSectionSerializer, 400: 'Validation Error'}
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new handbook section.
         
-"""
+        - `title`: Title of the section.
+        - `category`: The category to which the section belongs.
+        - Returns the created section with a slug.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-"""
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def section_detail(request, category_slug, section_slug):
-    try:
-        category = HandbookCategory.objects.get(slug=category_slug)
-        section = HandbookSection.objects.get(category=category, slug=section_slug)
-    except (HandbookCategory.DoesNotExist, HandbookSection.DoesNotExist):
-        return Response({'detail': 'Category or Section not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = HandbookSectionSerializer(section)
+    @swagger_auto_schema(
+        operation_description="Update an existing handbook section",
+        request_body=HandbookSectionSerializer,
+        responses={200: HandbookSectionSerializer, 400: 'Validation Error'}
+    )
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing handbook section.
+        
+        - `title`: Updated title of the section.
+        - `category`: Updated category to which the section belongs.
+        - Returns the updated section with new details.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        serializer = HandbookSectionSerializer(section, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @swagger_auto_schema(
+        operation_description="Delete a handbook section",
+        responses={204: 'No Content', 404: 'Not Found'}
+    )
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete an existing handbook section.
+        
+        - Deletes the specified section from the database.
+        - Returns `204 No Content` on successful deletion.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    elif request.method == 'DELETE':
-        section.delete()
-        return Response({'detail': 'Handbook Section deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
-"""
-    
-@api_view(['GET'])
-def section_entries(request, category_slug, section_slug):
-    try:
-        category = HandbookCategory.objects.get(slug=category_slug)
-        section = HandbookSection.objects.get(category=category, slug=section_slug)
-    except HandbookCategory.DoesNotExist or HandbookSection.DoesNotExist:
-        return Response({'detail': 'Category or Section not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        entries = HandbookEntry.objects.filter(section=section)
+    @swagger_auto_schema(
+        operation_description="Retrieve entries for a specific handbook section",
+        responses={200: HandbookEntrySerializer(many=True)}
+    )
+    @action(detail=True, methods=['get'])
+    def entries(self, request, pk=None):
+        """
+        Retrieve all entries for a specific handbook section.
+        
+        - Returns a list of entries under the specified section.
+        """
+        section = self.get_object()
+        entries = section.entries.all()
         serializer = HandbookEntrySerializer(entries, many=True)
         return Response(serializer.data)
 
-"""
 
-    elif request.method == 'POST':
-        request.data['section'] = section.id  # Attach section ID to the entry data
-        serializer = HandbookEntrySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-   
-""" 
-    
-@api_view(['GET'])
-def entry_detail(request, category_slug, section_slug, entry_slug):
-    try:
-        # Ensure the category exists
-        category = HandbookCategory.objects.get(slug=category_slug)
-        # Ensure the section exists within the given category
-        section = HandbookSection.objects.get(category=category, slug=section_slug)
-        # Finally, get the entry within the specified section
-        entry = HandbookEntry.objects.get(section=section, slug=entry_slug)
-    except (HandbookCategory.DoesNotExist, HandbookSection.DoesNotExist, HandbookEntry.DoesNotExist):
-        return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+# ViewSet for HandbookEntry
+class HandbookEntryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing Handbook Entries. Supports:
+    - Listing all entries
+    - Retrieving a single entry
+    - Creating a new entry
+    - Updating an existing entry
+    - Deleting an entry
+    """
 
-    if request.method == 'GET':
-        serializer = HandbookEntrySerializer(entry)
+    queryset = HandbookEntry.objects.all()
+
+    # Use different serializers for read and write operations
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return HandbookCreateEntrySerializer
+        return HandbookEntrySerializer
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['section']  # Enables filtering by 'section'
+    search_fields = ['title', 'section__title', 'section__category__title']  # Search on 'title', 'section', and 'category title'
+    ordering_fields = ['title', 'section__title', 'section__category__title']  # Ordering by title, section title, and category title
+
+    @swagger_auto_schema(
+        operation_description="Create a new handbook entry",
+        request_body=HandbookCreateEntrySerializer,
+        responses={201: HandbookEntrySerializer, 400: 'Validation Error'}
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new handbook entry.
+        
+        - `title`: Title of the entry.
+        - `content`: The content of the entry.
+        - `image`: Optional image for the entry.
+        - `video`: Optional video URL for the entry.
+        - `attachment`: Optional file attachment for the entry.
+        - `section_slug`: The slug of the section to which the entry belongs.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @swagger_auto_schema(
+        operation_description="Update an existing handbook entry",
+        request_body=HandbookCreateEntrySerializer,
+        responses={200: HandbookEntrySerializer, 400: 'Validation Error'}
+    )
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing handbook entry.
+        
+        - `title`: Updated title of the entry.
+        - `content`: Updated content of the entry.
+        - `image`: Updated image for the entry.
+        - `video`: Updated video URL for the entry.
+        - `attachment`: Updated file attachment for the entry.
+        - `section_slug`: The slug of the section to which the entry belongs.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
-    
-    """
-    elif request.method == 'PUT':
-        serializer = HandbookEntrySerializer(entry, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        entry.delete()
+    @swagger_auto_schema(
+        operation_description="Delete a handbook entry",
+        responses={204: 'No Content', 404: 'Not Found'}
+    )
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete an existing handbook entry.
+        
+        - Deletes the specified entry from the database.
+        - Returns `204 No Content` on successful deletion.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    """
-
-    

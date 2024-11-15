@@ -1,46 +1,40 @@
-from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import HandbookCategory, HandbookSection, HandbookEntry
 
-class HandbookCategorySerializer(serializers.ModelSerializer):
+
+# Serializer for read operations (retrieving entries)
+class HandbookEntrySerializer(serializers.ModelSerializer):
+    section = serializers.CharField(source='section.title', read_only=True)  # Section name
+
     class Meta:
-        model = HandbookCategory
-        fields = [ 'title']
+        model = HandbookEntry
+        fields = ['title', 'content', 'image', 'video', 'attachment', 'section', 'section']
+
+
+# Serializer for create and update operations
+class HandbookCreateEntrySerializer(serializers.ModelSerializer):
+    section = serializers.SlugRelatedField(slug_field='slug', queryset=HandbookSection.objects.all(), write_only=True)
+
+    class Meta:
+        model = HandbookEntry
+        fields = ['title', 'content', 'image', 'video', 'attachment', 'section']
+
 
 class HandbookSectionSerializer(serializers.ModelSerializer):
+    entries = HandbookEntrySerializer(many=True, read_only=True)  # Nested entries
     entries_count = serializers.SerializerMethodField()
 
     class Meta:
         model = HandbookSection
-        fields = ['title', 'entries_count']
-    
+        fields = ['title', 'slug', 'entries', 'entries_count']
+
     def get_entries_count(self, obj):
         return obj.entries.count()
 
-class HandbookEntrySerializer(serializers.ModelSerializer):
-    section_slug = serializers.SlugField(write_only=True)  # Add this field
+
+class HandbookCategorySerializer(serializers.ModelSerializer):
+    sections = HandbookSectionSerializer(many=True, read_only=True)  # Nested sections
 
     class Meta:
-        model = HandbookEntry
-        fields = ['title', 'content', 'image', 'video', 'attachment', 'section_slug']  # Include 'section_slug' in fields
-
-    def create(self, validated_data):
-        section_slug = validated_data.pop('section_slug')
-        try:
-            section = HandbookSection.objects.get(slug=section_slug)
-        except HandbookSection.DoesNotExist:
-            raise ValidationError({'section_slug': 'No section found with this slug.'})
-        validated_data['section'] = section
-        entry = HandbookEntry.objects.create(**validated_data)
-        return entry
-
-    def update(self, instance, validated_data):
-        section_slug = validated_data.pop('section_slug', None)
-        if section_slug:
-            section = HandbookSection.objects.get(slug=section_slug)
-            instance.section = section
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+        model = HandbookCategory
+        fields = ['title', 'slug', 'sections']
