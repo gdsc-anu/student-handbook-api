@@ -52,7 +52,7 @@ class HandbookCategory(SlugMixin, models.Model):
     class Meta:
         verbose_name = "Handbook Category"
         verbose_name_plural = "Handbook Categories"
-        ordering = ['title']
+        ordering = ['id']
 
     def __str__(self):
         return self.title
@@ -66,7 +66,7 @@ class HandbookSection(SlugMixin, models.Model):
     class Meta:
         verbose_name = "Handbook Section"
         verbose_name_plural = "Handbook Sections"
-        ordering = ['title']
+        ordering = ['id']
 
     def __str__(self):
         return self.title
@@ -99,7 +99,7 @@ class HandbookEntry(SlugMixin, models.Model):
     class Meta:
         verbose_name = "Handbook Entry"
         verbose_name_plural = "Handbook Entries"
-        ordering = ['title']
+        ordering = ['id']
 
     def __str__(self):
         return self.title

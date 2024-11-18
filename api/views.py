@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import HandbookCategory, HandbookSection, HandbookEntry
@@ -28,8 +28,9 @@ class HandbookCategoryViewSet(viewsets.ModelViewSet):
     queryset = HandbookCategory.objects.all()
     serializer_class = HandbookCategorySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ['title']  # Enables search on 'title' field
-    ordering_fields = ['title']  # Enables ordering by 'title'
+    search_fields = ['id', 'title']  # Enables search on 'title' field
+    ordering_fields = ['id', 'title']  # Enables ordering by 'title'
+    orderiing = ['id']
 
     @swagger_auto_schema(
         operation_description="Create a new handbook category",
@@ -117,7 +118,9 @@ class HandbookSectionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category']  # Enables filtering by 'category'
     search_fields = ['title', 'category__title']  # Enables search on 'title' and 'category title'
-    ordering_fields = ['title', 'category__title']  # Enables ordering by 'title' and 'category title'
+    ordering_fields = ['id', 'title', 'category__title']  # Enables ordering by 'title' and 'category title'
+    orderiing = ['id']
+
 
     @swagger_auto_schema(
         operation_description="Create a new handbook section",
@@ -211,8 +214,9 @@ class HandbookEntryViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['section']  # Enables filtering by 'section'
     search_fields = ['title', 'section__title', 'section__category__title']  # Search on 'title', 'section', and 'category title'
-    ordering_fields = ['title', 'section__title', 'section__category__title']  # Ordering by title, section title, and category title
-
+    ordering_fields = ['id', 'title', 'section__title', 'section__category__title']  # Ordering by title, section title, and category title
+    ordering = ['id']
+    
     @swagger_auto_schema(
         operation_description="Create a new handbook entry",
         request_body=HandbookCreateEntrySerializer,
